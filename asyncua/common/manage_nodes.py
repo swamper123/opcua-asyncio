@@ -261,6 +261,7 @@ async def _create_variable(server, parentnodeid, nodeid, qname, var, datatype=No
     attrs.Value = var
     if not isinstance(var.Value, (list, tuple)):
         attrs.ValueRank = ua.ValueRank.Scalar
+        attrs.ArrayDimensions = None
     else:
         if var.Dimensions:
             attrs.ValueRank = len(var.Dimensions)
@@ -330,7 +331,19 @@ async def create_data_type(parent, nodeid, bname, description=None):
     addnode.NodeAttributes = attrs
     results = await parent.server.add_nodes([addnode])
     results[0].StatusCode.check()
-    return make_node(parent.server, results[0].AddedNodeId)
+
+    new_node_id = results[0].AddedNodeId
+
+    # add reverse_reference
+    aitem = ua.AddReferencesItem()
+    aitem.SourceNodeId = new_node_id
+    aitem.TargetNodeId = parent.nodeid
+    aitem.ReferenceTypeId = ua.NodeId(ua.ObjectIds.HasSubtype)
+    aitem.IsForward = False
+    params = [aitem]
+    results = await parent.server.add_references(params)
+
+    return make_node(parent.server, new_node_id)
 
 
 async def create_encoding(parent, nodeid, bname):
@@ -340,6 +353,7 @@ async def create_encoding(parent, nodeid, bname):
     or namespace index, name
     """
     nodeid, qname = _parse_nodeid_qname(nodeid, bname)
+    qname.NamespaceIndex = 0  # encoding bname idx must be 0
     return make_node(parent.server, await _create_encoding(parent.server, parent.nodeid, nodeid, qname))
 
 
