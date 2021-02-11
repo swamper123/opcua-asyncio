@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from asyncua import Server, ua, Node
+from asyncua import Server, ua
 from asyncua.common.statemachine import FiniteStateMachine, State, Transition
 
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         # if the state node already exist for example from xml model you can assign it here aswell as if its a substate this is importent for the change of the state
         state1 = State("State-Id-1", "Idle", 1)
         # adds the state (StateType) to the statemachine childs - this is mandatory for the FiniteStateMachine!
-        await mystatemachine.add_state(state1, state_type=ua.NodeId(2309, 0)) #this is a init state -> InitialStateType: ua.NodeId(2309, 0)
+        await mystatemachine.add_state(state1, state_type=ua.NodeId(2309, 0))  # this is a init state -> InitialStateType: ua.NodeId(2309, 0)
         state2 = State("State-Id-2", "Loading", 2)
         await mystatemachine.add_state(state2)
         state3 = State("State-Id-3", "Initializing", 3)
